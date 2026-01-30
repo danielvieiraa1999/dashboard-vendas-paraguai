@@ -2,21 +2,65 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Dashboard - Produtos</title>
+<title>Dashboard de Vendas</title>
+
 <style>
-body{font-family:Arial;background:#f4f6f8;margin:0}
-.hidden{display:none}
-.center{display:flex;justify-content:center;align-items:center;height:100vh}
-.box{background:#fff;padding:20px;border-radius:10px;width:380px}
-input,button{width:100%;padding:8px;margin-top:8px}
-button{background:#0038a8;color:#fff;border:none;border-radius:6px}
-table{width:100%;margin-top:15px;border-collapse:collapse}
-th,td{border:1px solid #ccc;padding:6px;text-align:center}
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  margin: 0;
+}
+
+.hidden {
+  display: none;
+}
+
+.center {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.box {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  width: 380px;
+  box-shadow: 0 10px 25px rgba(0,0,0,.1);
+}
+
+input, button {
+  width: 100%;
+  padding: 8px;
+  margin-top: 8px;
+}
+
+button {
+  background: #0038a8;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+table {
+  width: 100%;
+  margin-top: 15px;
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+}
 </style>
 </head>
 
 <body>
 
+<!-- LOGIN -->
 <div id="loginScreen" class="center">
   <div class="box">
     <h2>Login</h2>
@@ -27,7 +71,8 @@ th,td{border:1px solid #ccc;padding:6px;text-align:center}
   </div>
 </div>
 
-<div id="appScreen" class="hidden center">
+<!-- DASHBOARD -->
+<div id="appScreen" class="center hidden">
   <div class="box">
     <h2>Produtos 📦</h2>
 
@@ -35,6 +80,7 @@ th,td{border:1px solid #ccc;padding:6px;text-align:center}
     <input id="custo" type="number" placeholder="Custo">
     <input id="preco" type="number" placeholder="Preço de venda">
     <input id="estoque" type="number" placeholder="Estoque">
+
     <button id="addProduto">Adicionar produto</button>
 
     <table>
@@ -57,24 +103,27 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebas
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
+// 🔥 CONFIG FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyCe-e8rB5b3JRxzsMnAid3l2MOLDI4Ym9A",
   authDomain: "dashboard-vendas-paraguai.firebaseapp.com",
   projectId: "dashboard-vendas-paraguai"
 };
 
+// 🔥 INIT
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const produtosRef = collection(db, "produtos");
 
-// 🔹 PEGAR ELEMENTOS CORRETAMENTE
-const btnLogin = document.getElementById("btnLogin");
-const btnLogout = document.getElementById("btnLogout");
-const email = document.getElementById("email");
-const senha = document.getElementById("senha");
-const erro = document.getElementById("erro");
+// 🔹 ELEMENTOS
 const loginScreen = document.getElementById("loginScreen");
 const appScreen = document.getElementById("appScreen");
+
+const email = document.getElementById("email");
+const senha = document.getElementById("senha");
+const btnLogin = document.getElementById("btnLogin");
+const erro = document.getElementById("erro");
 
 const nome = document.getElementById("nome");
 const custo = document.getElementById("custo");
@@ -82,26 +131,19 @@ const preco = document.getElementById("preco");
 const estoque = document.getElementById("estoque");
 const addProduto = document.getElementById("addProduto");
 const listaProdutos = document.getElementById("listaProdutos");
+const btnLogout = document.getElementById("btnLogout");
 
-const produtosRef = collection(db, "produtos");
-
-// 🔹 LOGIN
+// 🔐 LOGIN
 btnLogin.addEventListener("click", () => {
-  console.log("Botão Entrar clicado");
   signInWithEmailAndPassword(auth, email.value, senha.value)
-    .then(() => console.log("Login OK"))
-    .catch(e => {
-      console.error(e);
-      erro.innerText = "Erro no login";
-    });
+    .catch(e => erro.innerText = e.message);
 });
 
-// 🔹 LOGOUT
+// 🔓 LOGOUT
 btnLogout.addEventListener("click", () => signOut(auth));
 
-// 🔹 CONTROLE DE LOGIN
+// 🔄 CONTROLE DE SESSÃO
 onAuthStateChanged(auth, user => {
-  console.log("Auth mudou:", user);
   if (user) {
     loginScreen.classList.add("hidden");
     appScreen.classList.remove("hidden");
@@ -111,7 +153,7 @@ onAuthStateChanged(auth, user => {
   }
 });
 
-// 🔹 PRODUTOS
+// ➕ ADICIONAR PRODUTO
 addProduto.addEventListener("click", async () => {
   await addDoc(produtosRef, {
     nome: nome.value,
@@ -119,12 +161,14 @@ addProduto.addEventListener("click", async () => {
     preco: Number(preco.value),
     estoque: Number(estoque.value)
   });
+
   nome.value = custo.value = preco.value = estoque.value = "";
 });
 
-onSnapshot(produtosRef, snapshot => {
+// 📡 LISTAR PRODUTOS
+onSnapshot(produtosRef, snap => {
   listaProdutos.innerHTML = "";
-  snapshot.forEach(doc => {
+  snap.forEach(doc => {
     const p = doc.data();
     listaProdutos.innerHTML += `
       <tr>
