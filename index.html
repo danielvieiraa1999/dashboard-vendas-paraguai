@@ -2,43 +2,22 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Login - Dashboard</title>
+<title>Dashboard - Produtos</title>
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f6f8;
-  margin: 0;
-}
-.center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-.box {
-  background: #fff;
-  padding: 25px;
-  border-radius: 10px;
-  width: 320px;
-}
-input, button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-}
-button {
-  background: #0038a8;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.hidden { display: none; }
+body{font-family:Arial;background:#f4f6f8;margin:0}
+.hidden{display:none}
+.center{display:flex;justify-content:center;align-items:center;height:100vh}
+.box{background:#fff;padding:20px;border-radius:10px;width:360px}
+input,button{width:100%;padding:8px;margin-top:8px}
+button{background:#0038a8;color:#fff;border:none;border-radius:6px}
+table{width:100%;margin-top:15px;border-collapse:collapse}
+th,td{border:1px solid #ccc;padding:6px;text-align:center}
 </style>
 </head>
 
 <body>
 
+<!-- LOGIN -->
 <div id="loginScreen" class="center">
   <div class="box">
     <h2>Login</h2>
@@ -49,18 +28,38 @@ button {
   </div>
 </div>
 
-<div id="appScreen" class="center hidden">
+<!-- APP -->
+<div id="appScreen" class="hidden center">
   <div class="box">
-    <h2>Dashboard ☁️</h2>
-    <p>Login funcionando com Firebase</p>
-    <button id="btnLogout">Sair</button>
+    <h2>Produtos 📦</h2>
+
+    <input id="nome" placeholder="Nome do produto">
+    <input id="custo" type="number" placeholder="Custo">
+    <input id="preco" type="number" placeholder="Preço de venda">
+    <input id="estoque" type="number" placeholder="Estoque inicial">
+    <button id="addProduto">Adicionar produto</button>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Produto</th>
+          <th>Preço</th>
+          <th>Estoque</th>
+        </tr>
+      </thead>
+      <tbody id="listaProdutos"></tbody>
+    </table>
+
+    <button id="btnLogout" style="margin-top:15px">Sair</button>
   </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
+/* Firebase config */
 const firebaseConfig = {
   apiKey: "AIzaSyCe-e8rB5b3JRxzsMnAid3l2MOLDI4Ym9A",
   authDomain: "dashboard-vendas-paraguai.firebaseapp.com",
@@ -69,31 +68,53 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
+const produtosRef = collection(db, "produtos");
 
-const loginScreen = document.getElementById("loginScreen");
-const appScreen = document.getElementById("appScreen");
-const erro = document.getElementById("erro");
-
-document.getElementById("btnLogin").onclick = () => {
-  signInWithEmailAndPassword(
-    auth,
-    document.getElementById("email").value,
-    document.getElementById("senha").value
-  ).catch(e => {
-    erro.innerText = e.message;
-  });
+/* LOGIN */
+btnLogin.onclick = () => {
+  signInWithEmailAndPassword(auth, email.value, senha.value)
+    .catch(e => erro.innerText = e.message);
 };
 
-document.getElementById("btnLogout").onclick = () => signOut(auth);
+btnLogout.onclick = () => signOut(auth);
 
+/* CONTROLE DE TELA */
 onAuthStateChanged(auth, user => {
-  if (user) {
+  if(user){
     loginScreen.classList.add("hidden");
     appScreen.classList.remove("hidden");
   } else {
     appScreen.classList.add("hidden");
     loginScreen.classList.remove("hidden");
   }
+});
+
+/* ADICIONAR PRODUTO */
+addProduto.onclick = async () => {
+  await addDoc(produtosRef, {
+    nome: nome.value,
+    custo: Number(custo.value),
+    preco: Number(preco.value),
+    estoque: Number(estoque.value)
+  });
+
+  nome.value = custo.value = preco.value = estoque.value = "";
+};
+
+/* LISTAR PRODUTOS (TEMPO REAL) */
+onSnapshot(produtosRef, snapshot => {
+  listaProdutos.innerHTML = "";
+  snapshot.forEach(doc => {
+    const p = doc.data();
+    listaProdutos.innerHTML += `
+      <tr>
+        <td>${p.nome}</td>
+        <td>${p.preco}</td>
+        <td>${p.estoque}</td>
+      </tr>
+    `;
+  });
 });
 </script>
 
