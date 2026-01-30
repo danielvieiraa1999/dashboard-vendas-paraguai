@@ -1,87 +1,93 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Dashboard de Vendas</title>
+  <meta charset="UTF-8" />
+  <title>Dashboard de Vendas</title>
 
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f6f8;
-  margin: 0;
-}
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+    }
 
-.hidden {
-  display: none;
-}
+    .hidden {
+      display: none;
+    }
 
-.center {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+    .center {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-.box {
-  background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  width: 380px;
-  box-shadow: 0 10px 25px rgba(0,0,0,.1);
-}
+    .card {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      width: 380px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
 
-input, button {
-  width: 100%;
-  padding: 8px;
-  margin-top: 8px;
-}
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 16px;
+    }
 
-button {
-  background: #0038a8;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
+    button {
+      background: #1434A4;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
 
-table {
-  width: 100%;
-  margin-top: 15px;
-  border-collapse: collapse;
-}
+    button:hover {
+      opacity: 0.9;
+    }
 
-th, td {
-  border: 1px solid #ccc;
-  padding: 6px;
-  text-align: center;
-}
-</style>
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+
+    #error {
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div id="loginScreen" class="center">
-  <div class="box">
+<div class="center">
+  <!-- LOGIN -->
+  <div class="card" id="loginBox">
     <h2>Login</h2>
-    <input id="email" placeholder="Email">
-    <input id="senha" type="password" placeholder="Senha">
+    <input id="email" type="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Senha" />
     <button id="btnLogin">Entrar</button>
-    <p id="erro" style="color:red"></p>
+    <div id="error"></div>
   </div>
-</div>
 
-<!-- DASHBOARD -->
-<div id="appScreen" class="center hidden">
-  <div class="box">
-    <h2>Produtos 📦</h2>
+  <!-- DASHBOARD -->
+  <div class="card hidden" id="dashboard">
+    <h2>Dashboard ☁️</h2>
 
-    <input id="nome" placeholder="Nome do produto">
-    <input id="custo" type="number" placeholder="Custo">
-    <input id="preco" type="number" placeholder="Preço de venda">
-    <input id="estoque" type="number" placeholder="Estoque">
-
-    <button id="addProduto">Adicionar produto</button>
+    <input id="nome" placeholder="Produto" />
+    <input id="preco" type="number" placeholder="Preço" />
+    <input id="estoque" type="number" placeholder="Estoque" />
+    <button id="addProduto">Adicionar Produto</button>
 
     <table>
       <thead>
@@ -94,91 +100,76 @@ th, td {
       <tbody id="listaProdutos"></tbody>
     </table>
 
-    <button id="btnLogout" style="margin-top:15px">Sair</button>
+    <button id="btnLogout" style="margin-top:15px;">Sair</button>
   </div>
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
-// 🔥 CONFIG FIREBASE
-const firebaseConfig = {
-  apiKey: "AIzaSyCe-e8rB5b3JRxzsMnAid3l2MOLDI4Ym9A",
-  authDomain: "dashboard-vendas-paraguai.firebaseapp.com",
-  projectId: "dashboard-vendas-paraguai"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyCe-e8rB5b3JRxzsMnAid3l2MOLDI4Ym9A",
+    authDomain: "dashboard-vendas-paraguai.firebaseapp.com",
+    projectId: "dashboard-vendas-paraguai"
+  };
 
-// 🔥 INIT
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const produtosRef = collection(db, "produtos");
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const produtosRef = collection(db, "produtos");
 
-// 🔹 ELEMENTOS
-const loginScreen = document.getElementById("loginScreen");
-const appScreen = document.getElementById("appScreen");
+  const loginBox = document.getElementById("loginBox");
+  const dashboard = document.getElementById("dashboard");
+  const error = document.getElementById("error");
 
-const email = document.getElementById("email");
-const senha = document.getElementById("senha");
-const btnLogin = document.getElementById("btnLogin");
-const erro = document.getElementById("erro");
+  document.getElementById("btnLogin").onclick = async () => {
+    error.innerText = "";
+    try {
+      await signInWithEmailAndPassword(
+        auth,
+        email.value,
+        password.value
+      );
+    } catch (e) {
+      error.innerText = e.message;
+    }
+  };
 
-const nome = document.getElementById("nome");
-const custo = document.getElementById("custo");
-const preco = document.getElementById("preco");
-const estoque = document.getElementById("estoque");
-const addProduto = document.getElementById("addProduto");
-const listaProdutos = document.getElementById("listaProdutos");
-const btnLogout = document.getElementById("btnLogout");
+  document.getElementById("btnLogout").onclick = () => signOut(auth);
 
-// 🔐 LOGIN
-btnLogin.addEventListener("click", () => {
-  signInWithEmailAndPassword(auth, email.value, senha.value)
-    .catch(e => erro.innerText = e.message);
-});
+  document.getElementById("addProduto").onclick = async () => {
+    await addDoc(produtosRef, {
+      nome: nome.value,
+      preco: Number(preco.value),
+      estoque: Number(estoque.value)
+    });
+    nome.value = preco.value = estoque.value = "";
+  };
 
-// 🔓 LOGOUT
-btnLogout.addEventListener("click", () => signOut(auth));
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      loginBox.classList.add("hidden");
+      dashboard.classList.remove("hidden");
 
-// 🔄 CONTROLE DE SESSÃO
-onAuthStateChanged(auth, user => {
-  if (user) {
-    loginScreen.classList.add("hidden");
-    appScreen.classList.remove("hidden");
-  } else {
-    appScreen.classList.add("hidden");
-    loginScreen.classList.remove("hidden");
-  }
-});
-
-// ➕ ADICIONAR PRODUTO
-addProduto.addEventListener("click", async () => {
-  await addDoc(produtosRef, {
-    nome: nome.value,
-    custo: Number(custo.value),
-    preco: Number(preco.value),
-    estoque: Number(estoque.value)
+      onSnapshot(produtosRef, snap => {
+        listaProdutos.innerHTML = "";
+        snap.forEach(doc => {
+          const p = doc.data();
+          listaProdutos.innerHTML += `
+            <tr>
+              <td>${p.nome}</td>
+              <td>${p.preco}</td>
+              <td>${p.estoque}</td>
+            </tr>`;
+        });
+      });
+    } else {
+      loginBox.classList.remove("hidden");
+      dashboard.classList.add("hidden");
+    }
   });
-
-  nome.value = custo.value = preco.value = estoque.value = "";
-});
-
-// 📡 LISTAR PRODUTOS
-onSnapshot(produtosRef, snap => {
-  listaProdutos.innerHTML = "";
-  snap.forEach(doc => {
-    const p = doc.data();
-    listaProdutos.innerHTML += `
-      <tr>
-        <td>${p.nome}</td>
-        <td>${p.preco}</td>
-        <td>${p.estoque}</td>
-      </tr>
-    `;
-  });
-});
 </script>
 
 </body>
