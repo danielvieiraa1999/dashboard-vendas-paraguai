@@ -2,79 +2,97 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Dashboard - Login</title>
+<title>Login - Dashboard</title>
 <style>
-body{font-family:Arial;background:#f4f6f8;margin:0}
-.center{display:flex;align-items:center;justify-content:center;height:100vh}
-.box{background:#fff;padding:25px;border-radius:10px;width:320px}
-input,button{width:100%;padding:10px;margin-top:10px}
-button{background:#0038a8;color:#fff;border:none;border-radius:6px}
-.hidden{display:none}
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  margin: 0;
+}
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.box {
+  background: #fff;
+  padding: 25px;
+  border-radius: 10px;
+  width: 320px;
+}
+input, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+}
+button {
+  background: #0038a8;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.hidden { display: none; }
 </style>
 </head>
 
 <body>
 
-<div id="login" class="center">
+<div id="loginScreen" class="center">
   <div class="box">
     <h2>Login</h2>
     <input id="email" placeholder="Email">
     <input id="senha" type="password" placeholder="Senha">
-    <button onclick="login()">Entrar</button>
+    <button id="btnLogin">Entrar</button>
     <p id="erro" style="color:red"></p>
   </div>
 </div>
 
-<div id="app" class="hidden center">
+<div id="appScreen" class="center hidden">
   <div class="box">
-    <h2>Dashboard conectado ☁️</h2>
-    <p>Firestore funcionando</p>
-    <button onclick="criarTeste()">Criar dado teste</button>
-    <button onclick="logout()">Sair</button>
+    <h2>Dashboard ☁️</h2>
+    <p>Login funcionando com Firebase</p>
+    <button id="btnLogout">Sair</button>
   </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
-import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCe-e8rB5b3JRxzsMnAid3l2MOLDI4Ym9A",
   authDomain: "dashboard-vendas-paraguai.firebaseapp.com",
-  projectId: "dashboard-vendas-paraguai",
-  storageBucket: "dashboard-vendas-paraguai.firebasestorage.app",
-  messagingSenderId: "435240613744",
-  appId: "1:435240613744:web:7f28f134980959e654c1b5"
+  projectId: "dashboard-vendas-paraguai"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
-const empresaRef = doc(db, "empresa", "padrao");
 
-window.login = () => {
-  signInWithEmailAndPassword(auth, email.value, senha.value)
-    .catch(() => erro.innerText = "Login inválido");
-};
+const loginScreen = document.getElementById("loginScreen");
+const appScreen = document.getElementById("appScreen");
+const erro = document.getElementById("erro");
 
-window.logout = () => signOut(auth);
-
-window.criarTeste = async () => {
-  await setDoc(empresaRef, {
-    criadoEm: new Date().toISOString(),
-    status: "Firestore OK"
+document.getElementById("btnLogin").onclick = () => {
+  signInWithEmailAndPassword(
+    auth,
+    document.getElementById("email").value,
+    document.getElementById("senha").value
+  ).catch(e => {
+    erro.innerText = e.message;
   });
-  alert("Documento criado no Firestore!");
 };
+
+document.getElementById("btnLogout").onclick = () => signOut(auth);
 
 onAuthStateChanged(auth, user => {
-  if(user){
-    login.classList.add("hidden");
-    app.classList.remove("hidden");
+  if (user) {
+    loginScreen.classList.add("hidden");
+    appScreen.classList.remove("hidden");
   } else {
-    app.classList.add("hidden");
-    login.classList.remove("hidden");
+    appScreen.classList.add("hidden");
+    loginScreen.classList.remove("hidden");
   }
 });
 </script>
