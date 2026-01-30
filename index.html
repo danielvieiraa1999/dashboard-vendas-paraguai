@@ -7,7 +7,7 @@
 body{font-family:Arial;background:#f4f6f8;margin:0}
 .hidden{display:none}
 .center{display:flex;justify-content:center;align-items:center;height:100vh}
-.box{background:#fff;padding:20px;border-radius:10px;width:360px}
+.box{background:#fff;padding:20px;border-radius:10px;width:380px}
 input,button{width:100%;padding:8px;margin-top:8px}
 button{background:#0038a8;color:#fff;border:none;border-radius:6px}
 table{width:100%;margin-top:15px;border-collapse:collapse}
@@ -17,7 +17,6 @@ th,td{border:1px solid #ccc;padding:6px;text-align:center}
 
 <body>
 
-<!-- LOGIN -->
 <div id="loginScreen" class="center">
   <div class="box">
     <h2>Login</h2>
@@ -28,7 +27,6 @@ th,td{border:1px solid #ccc;padding:6px;text-align:center}
   </div>
 </div>
 
-<!-- APP -->
 <div id="appScreen" class="hidden center">
   <div class="box">
     <h2>Produtos 📦</h2>
@@ -36,7 +34,7 @@ th,td{border:1px solid #ccc;padding:6px;text-align:center}
     <input id="nome" placeholder="Nome do produto">
     <input id="custo" type="number" placeholder="Custo">
     <input id="preco" type="number" placeholder="Preço de venda">
-    <input id="estoque" type="number" placeholder="Estoque inicial">
+    <input id="estoque" type="number" placeholder="Estoque">
     <button id="addProduto">Adicionar produto</button>
 
     <table>
@@ -59,7 +57,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebas
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
-/* Firebase config */
 const firebaseConfig = {
   apiKey: "AIzaSyCe-e8rB5b3JRxzsMnAid3l2MOLDI4Ym9A",
   authDomain: "dashboard-vendas-paraguai.firebaseapp.com",
@@ -71,7 +68,6 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const produtosRef = collection(db, "produtos");
 
-/* LOGIN */
 btnLogin.onclick = () => {
   signInWithEmailAndPassword(auth, email.value, senha.value)
     .catch(e => erro.innerText = e.message);
@@ -79,7 +75,6 @@ btnLogin.onclick = () => {
 
 btnLogout.onclick = () => signOut(auth);
 
-/* CONTROLE DE TELA */
 onAuthStateChanged(auth, user => {
   if(user){
     loginScreen.classList.add("hidden");
@@ -90,7 +85,6 @@ onAuthStateChanged(auth, user => {
   }
 });
 
-/* ADICIONAR PRODUTO */
 addProduto.onclick = async () => {
   await addDoc(produtosRef, {
     nome: nome.value,
@@ -98,11 +92,9 @@ addProduto.onclick = async () => {
     preco: Number(preco.value),
     estoque: Number(estoque.value)
   });
-
   nome.value = custo.value = preco.value = estoque.value = "";
 };
 
-/* LISTAR PRODUTOS (TEMPO REAL) */
 onSnapshot(produtosRef, snapshot => {
   listaProdutos.innerHTML = "";
   snapshot.forEach(doc => {
