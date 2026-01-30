@@ -3,126 +3,77 @@
 <head>
   <meta charset="UTF-8" />
   <title>Dashboard de Vendas</title>
-
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f4f6f8;
       margin: 0;
     }
-
-    .container {
-      max-width: 900px;
-      margin: 40px auto;
+    .card {
+      max-width: 800px;
+      margin: 60px auto;
       background: #fff;
       padding: 30px;
-      border-radius: 12px;
+      border-radius: 10px;
       box-shadow: 0 10px 30px rgba(0,0,0,.1);
     }
-
     h1 {
       text-align: center;
       margin-bottom: 30px;
     }
-
-    .hidden {
-      display: none;
-    }
-
-    input {
+    input, button {
       width: 100%;
       padding: 12px;
-      margin: 8px 0;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+      margin-bottom: 10px;
       font-size: 16px;
     }
-
     button {
-      width: 100%;
-      padding: 14px;
+      background: #1f3fbf;
+      color: #fff;
       border: none;
       border-radius: 6px;
-      font-size: 16px;
       cursor: pointer;
-      margin-top: 10px;
     }
-
-    .btn {
-      background: #1f3fb8;
-      color: #fff;
-    }
-
-    .btn-danger {
+    button.logout {
       background: #c62828;
-      color: #fff;
+      margin-top: 20px;
     }
-
-    .error {
-      color: red;
-      margin-top: 10px;
-      text-align: center;
-    }
-
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 15px;
-      margin-bottom: 30px;
-    }
-
-    .card {
-      background: #f9fafb;
-      padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-      font-weight: bold;
-    }
-
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
     }
-
     th, td {
-      padding: 12px;
+      padding: 10px;
       border-bottom: 1px solid #ddd;
-      text-align: center;
+      text-align: left;
     }
-
-    th {
-      background: #f0f2f5;
+    .hidden {
+      display: none;
+    }
+    .error {
+      color: red;
+      text-align: center;
     }
   </style>
 </head>
-
 <body>
 
-<!-- LOGIN -->
-<div class="container" id="loginBox">
+<div id="login" class="card">
   <h1>Login</h1>
   <input id="email" type="email" placeholder="Email">
   <input id="senha" type="password" placeholder="Senha">
-  <button class="btn" id="btnLogin">Entrar</button>
-  <div class="error" id="erro"></div>
+  <button id="btnLogin">Entrar</button>
+  <p id="loginErro" class="error"></p>
 </div>
 
-<!-- DASHBOARD -->
-<div class="container hidden" id="dashboardBox">
+<div id="dashboard" class="card hidden">
   <h1>📊 Dashboard de Vendas</h1>
 
-  <div class="cards">
-    <div class="card">Produtos<br><span id="totalProdutos">0</span></div>
-    <div class="card">Itens em estoque<br><span id="totalEstoque">0</span></div>
-    <div class="card">Valor em estoque<br>R$ <span id="valorEstoque">0</span></div>
-    <div class="card">Estoque baixo<br><span id="estoqueBaixo">0</span></div>
-  </div>
-
-  <input id="nome" placeholder="Produto">
+  <input id="produto" placeholder="Produto">
   <input id="preco" type="number" placeholder="Preço">
   <input id="estoque" type="number" placeholder="Estoque">
-  <button class="btn" id="btnAdd">Adicionar Produto</button>
+  <button id="btnAdd">Adicionar Produto</button>
 
   <table>
     <thead>
@@ -135,13 +86,13 @@
     <tbody id="listaProdutos"></tbody>
   </table>
 
-  <button class="btn-danger" id="btnLogout">Sair</button>
+  <button class="logout" id="btnLogout">Sair</button>
 </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
-  import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "SUA_API_KEY",
@@ -152,16 +103,20 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+  const produtosRef = collection(db, "produtos");
 
-  const loginBox = document.getElementById("loginBox");
-  const dashboardBox = document.getElementById("dashboardBox");
+  const login = document.getElementById("login");
+  const dashboard = document.getElementById("dashboard");
 
-  const totalProdutos = document.getElementById("totalProdutos");
-  const totalEstoque = document.getElementById("totalEstoque");
-  const valorEstoque = document.getElementById("valorEstoque");
-  const estoqueBaixo = document.getElementById("estoqueBaixo");
-
-  const listaProdutos = document.getElementById("listaProdutos");
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      login.classList.add("hidden");
+      dashboard.classList.remove("hidden");
+    } else {
+      dashboard.classList.add("hidden");
+      login.classList.remove("hidden");
+    }
+  });
 
   document.getElementById("btnLogin").onclick = async () => {
     try {
@@ -170,64 +125,36 @@
         email.value,
         senha.value
       );
-    } catch (e) {
-      erro.innerText = "Login inválido";
+    } catch {
+      loginErro.innerText = "Login inválido";
     }
   };
 
   document.getElementById("btnLogout").onclick = () => signOut(auth);
 
-  onAuthStateChanged(auth, user => {
-    if (user) {
-      loginBox.classList.add("hidden");
-      dashboardBox.classList.remove("hidden");
+  document.getElementById("btnAdd").onclick = async () => {
+    if (!produto.value || !preco.value || !estoque.value) return;
 
-      const ref = collection(db, "produtos");
+    await addDoc(produtosRef, {
+      nome: produto.value,
+      preco: Number(preco.value),
+      estoque: Number(estoque.value)
+    });
 
-      onSnapshot(ref, snap => {
-        listaProdutos.innerHTML = "";
+    produto.value = preco.value = estoque.value = "";
+  };
 
-        let total = 0;
-        let estoque = 0;
-        let valor = 0;
-        let baixo = 0;
-
-        snap.forEach(doc => {
-          const p = doc.data();
-
-          total++;
-          estoque += p.estoque;
-          valor += p.preco * p.estoque;
-          if (p.estoque <= 3) baixo++;
-
-          listaProdutos.innerHTML += `
-            <tr>
-              <td>${p.nome}</td>
-              <td>R$ ${p.preco}</td>
-              <td>${p.estoque}</td>
-            </tr>
-          `;
-        });
-
-        totalProdutos.innerText = total;
-        totalEstoque.innerText = estoque;
-        valorEstoque.innerText = valor;
-        estoqueBaixo.innerText = baixo;
-      });
-
-      btnAdd.onclick = async () => {
-        await addDoc(collection(db, "produtos"), {
-          nome: nome.value,
-          preco: Number(preco.value),
-          estoque: Number(estoque.value)
-        });
-
-        nome.value = preco.value = estoque.value = "";
-      };
-    } else {
-      loginBox.classList.remove("hidden");
-      dashboardBox.classList.add("hidden");
-    }
+  onSnapshot(produtosRef, snap => {
+    listaProdutos.innerHTML = "";
+    snap.forEach(doc => {
+      const p = doc.data();
+      listaProdutos.innerHTML += `
+        <tr>
+          <td>${p.nome}</td>
+          <td>R$ ${p.preco}</td>
+          <td>${p.estoque}</td>
+        </tr>`;
+    });
   });
 </script>
 
