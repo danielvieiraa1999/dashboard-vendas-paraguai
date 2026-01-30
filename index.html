@@ -1,57 +1,3 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<title>Dashboard - Produtos</title>
-<style>
-body{font-family:Arial;background:#f4f6f8;margin:0}
-.hidden{display:none}
-.center{display:flex;justify-content:center;align-items:center;height:100vh}
-.box{background:#fff;padding:20px;border-radius:10px;width:380px}
-input,button{width:100%;padding:8px;margin-top:8px}
-button{background:#0038a8;color:#fff;border:none;border-radius:6px}
-table{width:100%;margin-top:15px;border-collapse:collapse}
-th,td{border:1px solid #ccc;padding:6px;text-align:center}
-</style>
-</head>
-
-<body>
-
-<div id="loginScreen" class="center">
-  <div class="box">
-    <h2>Login</h2>
-    <input id="email" placeholder="Email">
-    <input id="senha" type="password" placeholder="Senha">
-    <button id="btnLogin">Entrar</button>
-    <p id="erro" style="color:red"></p>
-  </div>
-</div>
-
-<div id="appScreen" class="hidden center">
-  <div class="box">
-    <h2>Produtos 📦</h2>
-
-    <input id="nome" placeholder="Nome do produto">
-    <input id="custo" type="number" placeholder="Custo">
-    <input id="preco" type="number" placeholder="Preço de venda">
-    <input id="estoque" type="number" placeholder="Estoque">
-    <button id="addProduto">Adicionar produto</button>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Produto</th>
-          <th>Preço</th>
-          <th>Estoque</th>
-        </tr>
-      </thead>
-      <tbody id="listaProdutos"></tbody>
-    </table>
-
-    <button id="btnLogout" style="margin-top:15px">Sair</button>
-  </div>
-</div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
@@ -66,17 +12,43 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+// 🔹 PEGAR ELEMENTOS CORRETAMENTE
+const btnLogin = document.getElementById("btnLogin");
+const btnLogout = document.getElementById("btnLogout");
+const email = document.getElementById("email");
+const senha = document.getElementById("senha");
+const erro = document.getElementById("erro");
+const loginScreen = document.getElementById("loginScreen");
+const appScreen = document.getElementById("appScreen");
+
+const nome = document.getElementById("nome");
+const custo = document.getElementById("custo");
+const preco = document.getElementById("preco");
+const estoque = document.getElementById("estoque");
+const addProduto = document.getElementById("addProduto");
+const listaProdutos = document.getElementById("listaProdutos");
+
 const produtosRef = collection(db, "produtos");
 
-btnLogin.onclick = () => {
+// 🔹 LOGIN
+btnLogin.addEventListener("click", () => {
+  console.log("Botão Entrar clicado");
   signInWithEmailAndPassword(auth, email.value, senha.value)
-    .catch(e => erro.innerText = e.message);
-};
+    .then(() => console.log("Login OK"))
+    .catch(e => {
+      console.error(e);
+      erro.innerText = "Erro no login";
+    });
+});
 
-btnLogout.onclick = () => signOut(auth);
+// 🔹 LOGOUT
+btnLogout.addEventListener("click", () => signOut(auth));
 
+// 🔹 CONTROLE DE LOGIN
 onAuthStateChanged(auth, user => {
-  if(user){
+  console.log("Auth mudou:", user);
+  if (user) {
     loginScreen.classList.add("hidden");
     appScreen.classList.remove("hidden");
   } else {
@@ -85,7 +57,8 @@ onAuthStateChanged(auth, user => {
   }
 });
 
-addProduto.onclick = async () => {
+// 🔹 PRODUTOS
+addProduto.addEventListener("click", async () => {
   await addDoc(produtosRef, {
     nome: nome.value,
     custo: Number(custo.value),
@@ -93,7 +66,7 @@ addProduto.onclick = async () => {
     estoque: Number(estoque.value)
   });
   nome.value = custo.value = preco.value = estoque.value = "";
-};
+});
 
 onSnapshot(produtosRef, snapshot => {
   listaProdutos.innerHTML = "";
@@ -109,6 +82,3 @@ onSnapshot(produtosRef, snapshot => {
   });
 });
 </script>
-
-</body>
-</html>
