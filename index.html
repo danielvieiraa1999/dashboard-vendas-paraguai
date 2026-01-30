@@ -3,160 +3,194 @@
 <head>
   <meta charset="UTF-8" />
   <title>Dashboard de Vendas</title>
+
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f4f6f8;
       margin: 0;
+      padding: 0;
     }
-    .card {
-      max-width: 800px;
-      margin: 60px auto;
+
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
       background: #fff;
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 10px 30px rgba(0,0,0,.1);
     }
+
     h1 {
       text-align: center;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
     }
+
     input, button {
       width: 100%;
       padding: 12px;
       margin-bottom: 10px;
       font-size: 16px;
     }
+
     button {
-      background: #1f3fbf;
+      background: #1e40af;
       color: #fff;
       border: none;
       border-radius: 6px;
       cursor: pointer;
     }
+
     button.logout {
       background: #c62828;
       margin-top: 20px;
     }
+
     table {
       width: 100%;
-      border-collapse: collapse;
       margin-top: 20px;
+      border-collapse: collapse;
     }
+
     th, td {
       padding: 10px;
       border-bottom: 1px solid #ddd;
-      text-align: left;
+      text-align: center;
     }
+
     .hidden {
       display: none;
     }
+
     .error {
       color: red;
       text-align: center;
+      margin-top: 10px;
     }
   </style>
 </head>
+
 <body>
 
-<div id="login" class="card">
-  <h1>Login</h1>
-  <input id="email" type="email" placeholder="Email">
-  <input id="senha" type="password" placeholder="Senha">
-  <button id="btnLogin">Entrar</button>
-  <p id="loginErro" class="error"></p>
-</div>
+  <!-- LOGIN -->
+  <div class="container" id="loginBox">
+    <h1>Login</h1>
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="senha" placeholder="Senha" />
+    <button id="btnLogin">Entrar</button>
+    <div class="error" id="loginErro"></div>
+  </div>
 
-<div id="dashboard" class="card hidden">
-  <h1>📊 Dashboard de Vendas</h1>
+  <!-- DASHBOARD -->
+  <div class="container hidden" id="dashboard">
+    <h1>📊 Dashboard de Vendas</h1>
 
-  <input id="produto" placeholder="Produto">
-  <input id="preco" type="number" placeholder="Preço">
-  <input id="estoque" type="number" placeholder="Estoque">
-  <button id="btnAdd">Adicionar Produto</button>
+    <input id="nome" placeholder="Produto" />
+    <input id="preco" type="number" placeholder="Preço" />
+    <input id="estoque" type="number" placeholder="Estoque" />
+    <button id="addProduto">Adicionar Produto</button>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Produto</th>
-        <th>Preço</th>
-        <th>Estoque</th>
-      </tr>
-    </thead>
-    <tbody id="listaProdutos"></tbody>
-  </table>
-
-  <button class="logout" id="btnLogout">Sair</button>
-</div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-  import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "SUA_API_KEY",
-    authDomain: "dashboard-vendas-paraguai.firebaseapp.com",
-    projectId: "dashboard-vendas-paraguai"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const produtosRef = collection(db, "produtos");
-
-  const login = document.getElementById("login");
-  const dashboard = document.getElementById("dashboard");
-
-  onAuthStateChanged(auth, user => {
-    if (user) {
-      login.classList.add("hidden");
-      dashboard.classList.remove("hidden");
-    } else {
-      dashboard.classList.add("hidden");
-      login.classList.remove("hidden");
-    }
-  });
-
-  document.getElementById("btnLogin").onclick = async () => {
-    try {
-      await signInWithEmailAndPassword(
-        auth,
-        email.value,
-        senha.value
-      );
-    } catch {
-      loginErro.innerText = "Login inválido";
-    }
-  };
-
-  document.getElementById("btnLogout").onclick = () => signOut(auth);
-
-  document.getElementById("btnAdd").onclick = async () => {
-    if (!produto.value || !preco.value || !estoque.value) return;
-
-    await addDoc(produtosRef, {
-      nome: produto.value,
-      preco: Number(preco.value),
-      estoque: Number(estoque.value)
-    });
-
-    produto.value = preco.value = estoque.value = "";
-  };
-
-  onSnapshot(produtosRef, snap => {
-    listaProdutos.innerHTML = "";
-    snap.forEach(doc => {
-      const p = doc.data();
-      listaProdutos.innerHTML += `
+    <table>
+      <thead>
         <tr>
-          <td>${p.nome}</td>
-          <td>R$ ${p.preco}</td>
-          <td>${p.estoque}</td>
-        </tr>`;
+          <th>Produto</th>
+          <th>Preço</th>
+          <th>Estoque</th>
+        </tr>
+      </thead>
+      <tbody id="listaProdutos"></tbody>
+    </table>
+
+    <button class="logout" id="btnLogout">Sair</button>
+  </div>
+
+  <!-- FIREBASE -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+    import { 
+      getAuth, 
+      signInWithEmailAndPassword, 
+      onAuthStateChanged, 
+      signOut 
+    } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+    import { 
+      getFirestore, 
+      collection, 
+      addDoc, 
+      onSnapshot 
+    } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "dashboard-vendas-paraguai.firebaseapp.com",
+      projectId: "dashboard-vendas-paraguai",
+      storageBucket: "dashboard-vendas-paraguai.appspot.com",
+      messagingSenderId: "435240613744",
+      appId: "SEU_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const produtosRef = collection(db, "produtos");
+
+    const loginBox = document.getElementById("loginBox");
+    const dashboard = document.getElementById("dashboard");
+
+    const btnLogin = document.getElementById("btnLogin");
+    const btnLogout = document.getElementById("btnLogout");
+    const loginErro = document.getElementById("loginErro");
+
+    btnLogin.onclick = async () => {
+      try {
+        await signInWithEmailAndPassword(
+          auth,
+          email.value,
+          senha.value
+        );
+      } catch (e) {
+        loginErro.innerText = "Login inválido";
+      }
+    };
+
+    btnLogout.onclick = () => signOut(auth);
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        loginBox.classList.add("hidden");
+        dashboard.classList.remove("hidden");
+      } else {
+        loginBox.classList.remove("hidden");
+        dashboard.classList.add("hidden");
+      }
     });
-  });
-</script>
+
+    addProduto.onclick = async () => {
+      if (!nome.value || !preco.value || !estoque.value) return;
+
+      await addDoc(produtosRef, {
+        nome: nome.value,
+        preco: Number(preco.value),
+        estoque: Number(estoque.value)
+      });
+
+      nome.value = preco.value = estoque.value = "";
+    };
+
+    onSnapshot(produtosRef, snap => {
+      listaProdutos.innerHTML = "";
+      snap.forEach(doc => {
+        const p = doc.data();
+        listaProdutos.innerHTML += `
+          <tr>
+            <td>${p.nome}</td>
+            <td>R$ ${p.preco}</td>
+            <td>${p.estoque}</td>
+          </tr>
+        `;
+      });
+    });
+  </script>
 
 </body>
 </html>
