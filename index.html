@@ -1,3 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard - Produtos</title>
+<style>
+body{font-family:Arial;background:#f4f6f8;margin:0}
+.hidden{display:none}
+.center{display:flex;justify-content:center;align-items:center;height:100vh}
+.box{background:#fff;padding:20px;border-radius:10px;width:380px}
+input,button{width:100%;padding:8px;margin-top:8px}
+button{background:#0038a8;color:#fff;border:none;border-radius:6px}
+table{width:100%;margin-top:15px;border-collapse:collapse}
+th,td{border:1px solid #ccc;padding:6px;text-align:center}
+</style>
+</head>
+
+<body>
+
+<div id="loginScreen" class="center">
+  <div class="box">
+    <h2>Login</h2>
+    <input id="email" placeholder="Email">
+    <input id="senha" type="password" placeholder="Senha">
+    <button id="btnLogin">Entrar</button>
+    <p id="erro" style="color:red"></p>
+  </div>
+</div>
+
+<div id="appScreen" class="hidden center">
+  <div class="box">
+    <h2>Produtos 📦</h2>
+
+    <input id="nome" placeholder="Nome do produto">
+    <input id="custo" type="number" placeholder="Custo">
+    <input id="preco" type="number" placeholder="Preço de venda">
+    <input id="estoque" type="number" placeholder="Estoque">
+    <button id="addProduto">Adicionar produto</button>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Produto</th>
+          <th>Preço</th>
+          <th>Estoque</th>
+        </tr>
+      </thead>
+      <tbody id="listaProdutos"></tbody>
+    </table>
+
+    <button id="btnLogout" style="margin-top:15px">Sair</button>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
@@ -82,3 +136,6 @@ onSnapshot(produtosRef, snapshot => {
   });
 });
 </script>
+
+</body>
+</html>
